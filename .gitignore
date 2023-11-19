@@ -161,3 +161,10 @@ cython_debug/
 
 # depend env
 .DS_Store
+
+# google api
+token.json
+credentials.json
+
+# tmp
+tmp/

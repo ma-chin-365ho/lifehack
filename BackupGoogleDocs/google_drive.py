@@ -1,9 +1,17 @@
+import os
+
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 
 from google_creds import get_creds
 
 MINE_TYPE_FOLDER = "application/vnd.google-apps.folder"
 MINE_TYPE_DOCS = "application/vnd.google-apps.document"
+MINE_TYPE_ZIP = "application/zip"
+
+MAP_EXT_AND_MINE_TYPE = {
+    ".zip" : MINE_TYPE_ZIP,
+}
 
 class GoogleDrive:
 
@@ -68,3 +76,19 @@ class GoogleDrive:
                     item["parents_path"] = s_path
                 
             return items
+
+    def upload(self, file_path, folder_id = None):
+        file_metadata = {"name": os.path.basename(file_path)}
+        if folder_id is not None:
+            file_metadata["parents"] = [folder_id]
+        
+        _, file_ext = os.path.splitext(file_path)
+
+        media = MediaFileUpload(file_path, mimetype=MAP_EXT_AND_MINE_TYPE[file_ext])
+        # pylint: disable=maybe-no-member
+        file = (
+            self.service.files()
+            .create(body=file_metadata, media_body=media, fields="id")
+            .execute()
+        )
+        return file.get("id")
